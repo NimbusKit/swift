@@ -1,10 +1,8 @@
-//
-//  NimbusKit.h
-//  NimbusKit
-//
-//  Created by Jeff Verkoeyen on 2014-10-31.
-//  Copyright (c) 2014 Featherless Software Design. All rights reserved.
-//
+/*
+ Copyright (c) 2011-present, NimbusKit. All rights reserved.
+
+ This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
+ */
 
 #import <UIKit/UIKit.h>
 

@@ -1,10 +1,8 @@
-//
-//  TableActions.swift
-//  swiftplayground
-//
-//  Created by Jeff Verkoeyen on 2014-11-08.
-//  Copyright (c) 2014 Featherless Software Design. All rights reserved.
-//
+/*
+ Copyright (c) 2011-present, NimbusKit. All rights reserved.
+
+ This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
+ */
 
 import Foundation
 
