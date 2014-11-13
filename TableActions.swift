@@ -8,7 +8,7 @@
 
 import Foundation
 
-class ActionableObject : NSObject, Equatable, Hashable {
+class ActionableObject : NSObject, Hashable {
   override var hashValue: Int {
     get {
       return self.hashValue
