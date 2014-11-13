@@ -4,8 +4,6 @@
  This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
  */
 
-import Foundation
-
 @objc public protocol TableCellObject {
   func tableCellClass() -> UITableViewCell.Type
   optional func cellStyle() -> UITableViewCellStyle

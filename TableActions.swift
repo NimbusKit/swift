@@ -4,8 +4,6 @@
  This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
  */
 
-import Foundation
-
 class ActionableObject : NSObject, Hashable {
   override var hashValue: Int {
     get {
