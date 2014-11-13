@@ -4,7 +4,7 @@
  This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
  */
 
-typealias Action = (object: AnyObject, target: AnyObject?, indexPath: NSIndexPath) -> Bool
+public typealias Action = (object: AnyObject, target: AnyObject?, indexPath: NSIndexPath) -> Bool
 
 protocol ActionsInterface {
   typealias ObjectType
