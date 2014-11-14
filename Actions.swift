@@ -9,40 +9,65 @@ import Foundation
 public typealias Action = (object: AnyObject, target: AnyObject?, indexPath: NSIndexPath) -> Bool
 
 protocol ActionsInterface {
-  typealias ObjectType
-  typealias TargetType
+  typealias O
 
-  func isActionableObject(object: ObjectType) -> Bool
+  func isActionableObject(object: O) -> Bool
 
-  mutating func setObject(object: ObjectType, enabled: Bool)
+  mutating func setObject(object: O, enabled: Bool)
   mutating func setClass(theClass: AnyClass, enabled: Bool)
 
-  mutating func attachToObject(object: ObjectType, tap: Action) -> ObjectType
-  mutating func attachToObject(object: ObjectType, navigate: Action) -> ObjectType
-  mutating func attachToObject(object: ObjectType, detail: Action) -> ObjectType
-  mutating func attachToObject(object: ObjectType, tap: (TargetType) -> () -> Bool) -> ObjectType
-  mutating func attachToObject(object: ObjectType, navigate: Selector) -> ObjectType
-  mutating func attachToObject(object: ObjectType, detail: Selector) -> ObjectType
+  mutating func attachToObject(object: O, tap: Action) -> O
+  mutating func attachToObject(object: O, navigate: Action) -> O
+  mutating func attachToObject(object: O, detail: Action) -> O
+  mutating func attachToObject<T: AnyObject>(object: O, target: T, tap: (T) -> () -> Bool) -> O
+  mutating func attachToObject<T: AnyObject>(object: O, target: T, navigate: (T) -> () -> ()) -> O
+  mutating func attachToObject<T: AnyObject>(object: O, target: T, detail: (T) -> () -> ()) -> O
 
   mutating func attachToClass(theClass: AnyClass, tap: Action) -> AnyClass
   mutating func attachToClass(theClass: AnyClass, navigate: Action) -> AnyClass
   mutating func attachToClass(theClass: AnyClass, detail: Action) -> AnyClass
-  mutating func attachToClass(theClass: AnyClass, tap: (TargetType) -> () -> Bool) -> AnyClass
-  mutating func attachToClass(theClass: AnyClass, navigate: Selector) -> AnyClass
-  mutating func attachToClass(theClass: AnyClass, detail: Selector) -> AnyClass
+  mutating func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, tap: (T) -> () -> Bool) -> AnyClass
+  mutating func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, navigate: (T) -> () -> ()) -> AnyClass
+  mutating func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, detail: (T) -> () -> ()) -> AnyClass
 
-  mutating func removeAllActionsForObject(object: ObjectType)
+  mutating func removeAllActionsForObject(object: O)
   mutating func removeAllActionsForClass(theClass: AnyClass)
 }
 
-struct ObjectActions <TargetType: AnyObject> {
+protocol TargetAction {
+  func performAction()
+}
+
+struct BoolObjectAction <T: AnyObject> : TargetAction {
+  weak var target: T?
+  let action: (T) -> () -> Bool
+
+  func performAction() {
+    if let t = target {
+      action(t)()
+    }
+  }
+}
+
+struct VoidObjectAction <T: AnyObject> : TargetAction {
+  weak var target: T?
+  let action: (T) -> () -> ()
+
+  func performAction() {
+    if let t = target {
+      action(t)()
+    }
+  }
+}
+
+struct ObjectActions {
   var tap: Action?
   var navigate: Action?
   var detail: Action?
 
-  var tapSelector: ((TargetType) -> () -> Bool)?
-  var navigateSelector: Selector?
-  var detailSelector: Selector?
+  var tapSelector: TargetAction?
+  var navigateSelector: TargetAction?
+  var detailSelector: TargetAction?
 
   var enabled: Bool = true
 
@@ -62,27 +87,22 @@ struct ObjectActions <TargetType: AnyObject> {
   }
 }
 
-struct Actions <TargetType: AnyObject, T where T: AnyObject, T: Hashable> {
-  weak var target: TargetType?
-  var objectToAction = Dictionary<Int, ObjectActions<TargetType>>()
-  var classToAction = Dictionary<String, ObjectActions<TargetType>>()
-
-  init(_ target: TargetType?) {
-    self.target = target
-  }
+struct Actions <O where O: AnyObject, O: Hashable> {
+  var objectToAction = Dictionary<Int, ObjectActions>()
+  var classToAction = Dictionary<String, ObjectActions>()
 }
 
 extension Actions : ActionsInterface {
 
   // Querying Actionable State
 
-  func isActionableObject(object: T) -> Bool {
+  func isActionableObject(object: O) -> Bool {
     return self.actionsForObject(object).hasActions()
   }
 
   // Enabling/Disabling Actions
 
-  mutating func setObject(object: T, enabled: Bool) {
+  mutating func setObject(object: O, enabled: Bool) {
     self.ensureActionsExistForObject(object)
     self.objectToAction[object.hashValue]!.enabled = enabled
   }
@@ -95,39 +115,39 @@ extension Actions : ActionsInterface {
 
   // Object Mapping
 
-  mutating func attachToObject(object: T, tap: Action) -> T {
+  mutating func attachToObject(object: O, tap: Action) -> O {
     self.ensureActionsExistForObject(object)
     self.objectToAction[object.hashValue]!.tap = tap
     return object
   }
 
-  mutating func attachToObject(object: T, navigate: Action) -> T {
+  mutating func attachToObject(object: O, navigate: Action) -> O {
     self.ensureActionsExistForObject(object)
     self.objectToAction[object.hashValue]!.navigate = navigate
     return object
   }
 
-  mutating func attachToObject(object: T, detail: Action) -> T {
+  mutating func attachToObject(object: O, detail: Action) -> O {
     self.ensureActionsExistForObject(object)
     self.objectToAction[object.hashValue]!.detail = detail
     return object
   }
 
-  mutating func attachToObject(object: T, tap: (TargetType) -> () -> Bool) -> T {
+  mutating func attachToObject<T: AnyObject>(object: O, target: T, tap: (T) -> () -> Bool) -> O {
     self.ensureActionsExistForObject(object)
-    self.objectToAction[object.hashValue]!.tapSelector = tap
+    self.objectToAction[object.hashValue]!.tapSelector = BoolObjectAction(target: target, action: tap)
     return object
   }
 
-  mutating func attachToObject(object: T, navigate: Selector) -> T {
+  mutating func attachToObject<T: AnyObject>(object: O, target: T, navigate: (T) -> () -> ()) -> O {
     self.ensureActionsExistForObject(object)
-    self.objectToAction[object.hashValue]!.navigateSelector = navigate
+    self.objectToAction[object.hashValue]!.navigateSelector = VoidObjectAction(target: target, action: navigate)
     return object
   }
 
-  mutating func attachToObject(object: T, detail: Selector) -> T {
+  mutating func attachToObject<T: AnyObject>(object: O, target: T, detail: (T) -> () -> ()) -> O {
     self.ensureActionsExistForObject(object)
-    self.objectToAction[object.hashValue]!.detailSelector = detail
+    self.objectToAction[object.hashValue]!.detailSelector = VoidObjectAction(target: target, action: detail)
     return object
   }
 
@@ -154,30 +174,30 @@ extension Actions : ActionsInterface {
     return theClass
   }
 
-  mutating func attachToClass(theClass: AnyClass, tap: (TargetType) -> () -> Bool) -> AnyClass {
+  mutating func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, tap: (T) -> () -> Bool) -> AnyClass {
     let className = NSStringFromClass(theClass)
     self.ensureActionsExistForClass(className)
-    self.classToAction[className]!.tapSelector = tap
+    self.classToAction[className]!.tapSelector = BoolObjectAction(target: target, action: tap)
     return theClass
   }
 
-  mutating func attachToClass(theClass: AnyClass, navigate: Selector) -> AnyClass {
+  mutating func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, navigate: (T) -> () -> ()) -> AnyClass {
     let className = NSStringFromClass(theClass)
     self.ensureActionsExistForClass(className)
-    self.classToAction[className]!.navigateSelector = navigate
+    self.classToAction[className]!.navigateSelector = VoidObjectAction(target: target, action: navigate)
     return theClass
   }
 
-  mutating func attachToClass(theClass: AnyClass, detail: Selector) -> AnyClass {
+  mutating func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, detail: (T) -> () -> ()) -> AnyClass {
     let className = NSStringFromClass(theClass)
     self.ensureActionsExistForClass(className)
-    self.classToAction[className]!.detailSelector = detail
+    self.classToAction[className]!.detailSelector = VoidObjectAction(target: target, action: detail)
     return theClass
   }
 
   // Removing Actions
 
-  mutating func removeAllActionsForObject(object: T) {
+  mutating func removeAllActionsForObject(object: O) {
     self.objectToAction[object.hashValue]?.reset()
   }
 
@@ -188,7 +208,7 @@ extension Actions : ActionsInterface {
 
 // Private
 extension Actions {
-  func actionsForObject(object: T) -> ObjectActions<TargetType> {
+  func actionsForObject(object: O) -> ObjectActions {
     var actions = self.objectToAction[object.hashValue]
     if actions != nil && actions!.hasActions() {
       return actions!
@@ -230,7 +250,7 @@ extension Actions {
     return actions!
   }
 
-  mutating func ensureActionsExistForObject(object: T) {
+  mutating func ensureActionsExistForObject(object: O) {
     if self.objectToAction[object.hashValue] == nil {
       self.objectToAction[object.hashValue] = ObjectActions()
     }

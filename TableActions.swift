@@ -14,12 +14,8 @@ public func ==(lhs: ActionableObject, rhs: ActionableObject) -> Bool {
   return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
 }
 
-public class TableActions <TargetType : AnyObject> : NSObject, UITableViewDelegate {
-  var actions: Actions<TargetType, ActionableObject>
-
-  public init(target: TargetType) {
-    self.actions = Actions(target)
-  }
+public class TableActions : NSObject, UITableViewDelegate {
+  var actions: Actions<ActionableObject> = Actions()
 
   public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forObject object: ActionableObject, atIndexPath indexPath: NSIndexPath) -> Bool {
     if !self.actions.isActionableObject(object) {
@@ -34,7 +30,7 @@ public class TableActions <TargetType : AnyObject> : NSObject, UITableViewDelega
   @objc(tableView:didSelectObject:atIndexPath:)
   public func tableView(tableView: UITableView, didSelectObject object: ActionableObject, atIndexPath indexPath: NSIndexPath) {
     let actions = self.actions.actionsForObject(object)
-    actions.tapSelector?(self.actions.target!)()
+    actions.tapSelector?.performAction()
   }
 
   public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
@@ -74,14 +70,14 @@ extension TableActions : ActionsInterface {
   public func attachToObject(object: ActionableObject, detail: Action) -> ActionableObject {
     return self.actions.attachToObject(object, detail: detail)
   }
-  public func attachToObject(object: ActionableObject, tap: (TargetType) -> () -> Bool) -> ActionableObject {
-    return self.actions.attachToObject(object, tap: tap)
+  public func attachToObject<T: AnyObject>(object: ActionableObject, target: T, tap: (T) -> () -> Bool) -> ActionableObject {
+    return self.actions.attachToObject(object, target: target, tap: tap)
   }
-  public func attachToObject(object: ActionableObject, navigate: Selector) -> ActionableObject {
-    return self.actions.attachToObject(object, navigate: navigate)
+  public func attachToObject<T: AnyObject>(object: ActionableObject, target: T, navigate: (T) -> () -> ()) -> ActionableObject {
+    return self.actions.attachToObject(object, target: target, navigate: navigate)
   }
-  public func attachToObject(object: ActionableObject, detail: Selector) -> ActionableObject {
-    return self.actions.attachToObject(object, detail: detail)
+  public func attachToObject<T: AnyObject>(object: ActionableObject, target: T, detail: (T) -> () -> ()) -> ActionableObject {
+    return self.actions.attachToObject(object, target: target, detail: detail)
   }
 
   public func attachToClass(theClass: AnyClass, tap: Action) -> AnyClass {
@@ -93,14 +89,14 @@ extension TableActions : ActionsInterface {
   public func attachToClass(theClass: AnyClass, detail: Action) -> AnyClass {
     return self.actions.attachToClass(theClass, detail: detail)
   }
-  public func attachToClass(theClass: AnyClass, tap: (TargetType) -> () -> Bool) -> AnyClass {
-    return self.actions.attachToClass(theClass, tap: tap)
+  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, tap: (T) -> () -> Bool) -> AnyClass {
+    return self.actions.attachToClass(theClass, target: target, tap: tap)
   }
-  public func attachToClass(theClass: AnyClass, navigate: Selector) -> AnyClass {
-    return self.actions.attachToClass(theClass, navigate: navigate)
+  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, navigate: (T) -> () -> ()) -> AnyClass {
+    return self.actions.attachToClass(theClass, target: target, navigate: navigate)
   }
-  public func attachToClass(theClass: AnyClass, detail: Selector) -> AnyClass {
-    return self.actions.attachToClass(theClass, detail: detail)
+  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, detail: (T) -> () -> ()) -> AnyClass {
+    return self.actions.attachToClass(theClass, target: target, detail: detail)
   }
 
   public func removeAllActionsForObject(object: ActionableObject) {
