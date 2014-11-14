@@ -4,10 +4,13 @@
  This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
  */
 
+import Foundation
+
 public typealias Action = (object: AnyObject, target: AnyObject?, indexPath: NSIndexPath) -> Bool
 
 protocol ActionsInterface {
   typealias ObjectType
+  typealias TargetType
 
   func isActionableObject(object: ObjectType) -> Bool
 
@@ -17,14 +20,14 @@ protocol ActionsInterface {
   mutating func attachToObject(object: ObjectType, tap: Action) -> ObjectType
   mutating func attachToObject(object: ObjectType, navigate: Action) -> ObjectType
   mutating func attachToObject(object: ObjectType, detail: Action) -> ObjectType
-  mutating func attachToObject(object: ObjectType, tap: Selector) -> ObjectType
+  mutating func attachToObject(object: ObjectType, tap: (TargetType) -> () -> Bool) -> ObjectType
   mutating func attachToObject(object: ObjectType, navigate: Selector) -> ObjectType
   mutating func attachToObject(object: ObjectType, detail: Selector) -> ObjectType
 
   mutating func attachToClass(theClass: AnyClass, tap: Action) -> AnyClass
   mutating func attachToClass(theClass: AnyClass, navigate: Action) -> AnyClass
   mutating func attachToClass(theClass: AnyClass, detail: Action) -> AnyClass
-  mutating func attachToClass(theClass: AnyClass, tap: Selector) -> AnyClass
+  mutating func attachToClass(theClass: AnyClass, tap: (TargetType) -> () -> Bool) -> AnyClass
   mutating func attachToClass(theClass: AnyClass, navigate: Selector) -> AnyClass
   mutating func attachToClass(theClass: AnyClass, detail: Selector) -> AnyClass
 
@@ -32,12 +35,12 @@ protocol ActionsInterface {
   mutating func removeAllActionsForClass(theClass: AnyClass)
 }
 
-struct ObjectActions {
+struct ObjectActions <TargetType: AnyObject> {
   var tap: Action?
   var navigate: Action?
   var detail: Action?
 
-  var tapSelector: Selector?
+  var tapSelector: ((TargetType) -> () -> Bool)?
   var navigateSelector: Selector?
   var detailSelector: Selector?
 
@@ -59,12 +62,12 @@ struct ObjectActions {
   }
 }
 
-struct Actions <T where T: AnyObject, T: Hashable> {
-  weak var target: AnyObject?
-  var objectToAction = Dictionary<Int, ObjectActions>()
-  var classToAction = Dictionary<String, ObjectActions>()
+struct Actions <TargetType: AnyObject, T where T: AnyObject, T: Hashable> {
+  weak var target: TargetType?
+  var objectToAction = Dictionary<Int, ObjectActions<TargetType>>()
+  var classToAction = Dictionary<String, ObjectActions<TargetType>>()
 
-  init(_ target: AnyObject) {
+  init(_ target: TargetType?) {
     self.target = target
   }
 }
@@ -110,7 +113,7 @@ extension Actions : ActionsInterface {
     return object
   }
 
-  mutating func attachToObject(object: T, tap: Selector) -> T {
+  mutating func attachToObject(object: T, tap: (TargetType) -> () -> Bool) -> T {
     self.ensureActionsExistForObject(object)
     self.objectToAction[object.hashValue]!.tapSelector = tap
     return object
@@ -151,7 +154,7 @@ extension Actions : ActionsInterface {
     return theClass
   }
 
-  mutating func attachToClass(theClass: AnyClass, tap: Selector) -> AnyClass {
+  mutating func attachToClass(theClass: AnyClass, tap: (TargetType) -> () -> Bool) -> AnyClass {
     let className = NSStringFromClass(theClass)
     self.ensureActionsExistForClass(className)
     self.classToAction[className]!.tapSelector = tap
@@ -185,7 +188,7 @@ extension Actions : ActionsInterface {
 
 // Private
 extension Actions {
-  func actionsForObject(object: T) -> ObjectActions {
+  func actionsForObject(object: T) -> ObjectActions<TargetType> {
     var actions = self.objectToAction[object.hashValue]
     if actions != nil && actions!.hasActions() {
       return actions!

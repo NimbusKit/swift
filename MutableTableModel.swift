@@ -4,6 +4,8 @@
  This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
  */
 
+import Foundation
+
 public class MutableTableModel : TableModel {
   var mutableModel: TableCellObjectModel
 

@@ -4,6 +4,9 @@
  This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
  */
 
+import Foundation
+import UIKit
+
 public class ActionableObject : NSObject, Hashable {
 }
 
@@ -11,10 +14,10 @@ public func ==(lhs: ActionableObject, rhs: ActionableObject) -> Bool {
   return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
 }
 
-public class TableActions : NSObject {
-  var actions: Actions<ActionableObject>
+public class TableActions <TargetType : AnyObject> : NSObject, UITableViewDelegate {
+  var actions: Actions<TargetType, ActionableObject>
 
-  public init(target: AnyObject) {
+  public init(target: TargetType) {
     self.actions = Actions(target)
   }
 
@@ -28,12 +31,12 @@ public class TableActions : NSObject {
     return true
   }
 
+  @objc(tableView:didSelectObject:atIndexPath:)
   public func tableView(tableView: UITableView, didSelectObject object: ActionableObject, atIndexPath indexPath: NSIndexPath) {
-    //self.actions.target
+    let actions = self.actions.actionsForObject(object)
+    actions.tapSelector?(self.actions.target!)()
   }
-}
 
-extension TableActions : UITableViewDelegate {
   public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
     cell.accessoryType = .None
     cell.selectionStyle = .None
@@ -71,15 +74,12 @@ extension TableActions : ActionsInterface {
   public func attachToObject(object: ActionableObject, detail: Action) -> ActionableObject {
     return self.actions.attachToObject(object, detail: detail)
   }
-  @objc(attachToObject:tapSelector:)
-  public func attachToObject(object: ActionableObject, tap: Selector) -> ActionableObject {
+  public func attachToObject(object: ActionableObject, tap: (TargetType) -> () -> Bool) -> ActionableObject {
     return self.actions.attachToObject(object, tap: tap)
   }
-  @objc(attachToObject:navigateSelector:)
   public func attachToObject(object: ActionableObject, navigate: Selector) -> ActionableObject {
     return self.actions.attachToObject(object, navigate: navigate)
   }
-  @objc(attachToObject:detailSelector:)
   public func attachToObject(object: ActionableObject, detail: Selector) -> ActionableObject {
     return self.actions.attachToObject(object, detail: detail)
   }
@@ -93,15 +93,12 @@ extension TableActions : ActionsInterface {
   public func attachToClass(theClass: AnyClass, detail: Action) -> AnyClass {
     return self.actions.attachToClass(theClass, detail: detail)
   }
-  @objc(attachToClass:tapSelector:)
-  public func attachToClass(theClass: AnyClass, tap: Selector) -> AnyClass {
+  public func attachToClass(theClass: AnyClass, tap: (TargetType) -> () -> Bool) -> AnyClass {
     return self.actions.attachToClass(theClass, tap: tap)
   }
-  @objc(attachToClass:navigateSelector:)
   public func attachToClass(theClass: AnyClass, navigate: Selector) -> AnyClass {
     return self.actions.attachToClass(theClass, navigate: navigate)
   }
-  @objc(attachToClass:detailSelector:)
   public func attachToClass(theClass: AnyClass, detail: Selector) -> AnyClass {
     return self.actions.attachToClass(theClass, detail: detail)
   }

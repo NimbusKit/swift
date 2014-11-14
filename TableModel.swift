@@ -4,6 +4,9 @@
  This source code is licensed under the BSD-style license found at http://nimbuskit.info/license
  */
 
+import Foundation
+import UIKit
+
 @objc public protocol TableModelDelegate {
   func tableModel (tableModel: TableModel, cellForTableView tableView: UITableView, indexPath: NSIndexPath, object: AnyObject) -> UITableViewCell?
 }
