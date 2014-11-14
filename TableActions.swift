@@ -27,6 +27,10 @@ public class TableActions : NSObject {
     cell.selectionStyle = .Default
     return true
   }
+
+  public func tableView(tableView: UITableView, didSelectObject object: ActionableObject, atIndexPath indexPath: NSIndexPath) {
+    //self.actions.target
+  }
 }
 
 extension TableActions : UITableViewDelegate {
@@ -34,10 +38,14 @@ extension TableActions : UITableViewDelegate {
     cell.accessoryType = .None
     cell.selectionStyle = .None
 
-    if let model = tableView.dataSource as? TableModel {
-      if let actionableObject = model.objectAtPath(indexPath) as? ActionableObject {
-        self.tableView(tableView, willDisplayCell: cell, forObject: actionableObject, atIndexPath: indexPath)
-      }
+    if let actionableObject = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
+      self.tableView(tableView, willDisplayCell: cell, forObject: actionableObject, atIndexPath: indexPath)
+    }
+  }
+
+  public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+    if let actionableObject = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
+      self.tableView(tableView, didSelectObject: actionableObject, atIndexPath: indexPath)
     }
   }
 }
@@ -103,5 +111,17 @@ extension TableActions : ActionsInterface {
   }
   public func removeAllActionsForClass(theClass: AnyClass) {
     self.actions.removeAllActionsForClass(theClass)
+  }
+}
+
+// Private
+extension TableActions {
+  func actionableObjectForTableView(tableView: UITableView, atIndexPath indexPath: NSIndexPath) -> ActionableObject? {
+    if let model = tableView.dataSource as? TableModel {
+      if let actionableObject = model.objectAtPath(indexPath) as? ActionableObject {
+        return actionableObject
+      }
+    }
+    return nil
   }
 }
