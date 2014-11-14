@@ -7,17 +7,10 @@
 import Foundation
 import UIKit
 
-public class ActionableObject : NSObject, Hashable {
-}
+public class TableActions : NSObject {
+  var actions: Actions<NSObject> = Actions()
 
-public func ==(lhs: ActionableObject, rhs: ActionableObject) -> Bool {
-  return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
-}
-
-public class TableActions : NSObject, UITableViewDelegate {
-  var actions: Actions<ActionableObject> = Actions()
-
-  public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forObject object: ActionableObject, atIndexPath indexPath: NSIndexPath) -> Bool {
+  public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forObject object: NSObject, atIndexPath indexPath: NSIndexPath) -> Bool {
     if !self.actions.isActionableObject(object) {
       return false
     }
@@ -28,55 +21,57 @@ public class TableActions : NSObject, UITableViewDelegate {
   }
 
   @objc(tableView:didSelectObject:atIndexPath:)
-  public func tableView(tableView: UITableView, didSelectObject object: ActionableObject, atIndexPath indexPath: NSIndexPath) {
+  public func tableView(tableView: UITableView, didSelectObject object: NSObject, atIndexPath indexPath: NSIndexPath) {
     let actions = self.actions.actionsForObject(object)
     actions.tapSelector?.performAction()
   }
+}
 
+extension TableActions : UITableViewDelegate {
   public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
     cell.accessoryType = .None
     cell.selectionStyle = .None
 
-    if let actionableObject = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
-      self.tableView(tableView, willDisplayCell: cell, forObject: actionableObject, atIndexPath: indexPath)
+    if let object = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
+      self.tableView(tableView, willDisplayCell: cell, forObject: object, atIndexPath: indexPath)
     }
   }
 
   public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-    if let actionableObject = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
-      self.tableView(tableView, didSelectObject: actionableObject, atIndexPath: indexPath)
+    if let object = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
+      self.tableView(tableView, didSelectObject: object, atIndexPath: indexPath)
     }
   }
 }
 
 extension TableActions : ActionsInterface {
-  public func isActionableObject(object: ActionableObject) -> Bool {
+  public func isActionableObject(object: NSObject) -> Bool {
     return self.actions.isActionableObject(object)
   }
 
-  public func setObject(object: ActionableObject, enabled: Bool) {
+  public func setObject(object: NSObject, enabled: Bool) {
     self.actions.setObject(object, enabled: enabled)
   }
   public func setClass(theClass: AnyClass, enabled: Bool) {
     self.actions.setClass(theClass, enabled: enabled)
   }
 
-  public func attachToObject(object: ActionableObject, tap: Action) -> ActionableObject {
+  public func attachToObject(object: NSObject, tap: Action) -> NSObject {
     return self.actions.attachToObject(object, tap: tap)
   }
-  public func attachToObject(object: ActionableObject, navigate: Action) -> ActionableObject {
+  public func attachToObject(object: NSObject, navigate: Action) -> NSObject {
     return self.actions.attachToObject(object, navigate: navigate)
   }
-  public func attachToObject(object: ActionableObject, detail: Action) -> ActionableObject {
+  public func attachToObject(object: NSObject, detail: Action) -> NSObject {
     return self.actions.attachToObject(object, detail: detail)
   }
-  public func attachToObject<T: AnyObject>(object: ActionableObject, target: T, tap: (T) -> () -> Bool) -> ActionableObject {
+  public func attachToObject<T: AnyObject>(object: NSObject, target: T, tap: (T) -> () -> Bool) -> NSObject {
     return self.actions.attachToObject(object, target: target, tap: tap)
   }
-  public func attachToObject<T: AnyObject>(object: ActionableObject, target: T, navigate: (T) -> () -> ()) -> ActionableObject {
+  public func attachToObject<T: AnyObject>(object: NSObject, target: T, navigate: (T) -> () -> ()) -> NSObject {
     return self.actions.attachToObject(object, target: target, navigate: navigate)
   }
-  public func attachToObject<T: AnyObject>(object: ActionableObject, target: T, detail: (T) -> () -> ()) -> ActionableObject {
+  public func attachToObject<T: AnyObject>(object: NSObject, target: T, detail: (T) -> () -> ()) -> NSObject {
     return self.actions.attachToObject(object, target: target, detail: detail)
   }
 
@@ -99,7 +94,7 @@ extension TableActions : ActionsInterface {
     return self.actions.attachToClass(theClass, target: target, detail: detail)
   }
 
-  public func removeAllActionsForObject(object: ActionableObject) {
+  public func removeAllActionsForObject(object: NSObject) {
     self.actions.removeAllActionsForObject(object)
   }
   public func removeAllActionsForClass(theClass: AnyClass) {
@@ -109,10 +104,10 @@ extension TableActions : ActionsInterface {
 
 // Private
 extension TableActions {
-  func actionableObjectForTableView(tableView: UITableView, atIndexPath indexPath: NSIndexPath) -> ActionableObject? {
+  func actionableObjectForTableView(tableView: UITableView, atIndexPath indexPath: NSIndexPath) -> NSObject? {
     if let model = tableView.dataSource as? TableModel {
-      if let actionableObject = model.objectAtPath(indexPath) as? ActionableObject {
-        return actionableObject
+      if let object = model.objectAtPath(indexPath) as? NSObject {
+        return object
       }
     }
     return nil
