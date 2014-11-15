@@ -275,8 +275,10 @@ extension Actions {
   /**
   Returns all attached actions for a given object.
   
-  "Attached actions" is defined here as the union of all 1) actions attached to the provided object
-  and 2) actions attached to classes in the object's class ancestry.
+  "Attached actions" is the union of
+
+  1) actions attached to the provided object, and
+  2) actions attached to classes in the object's class ancestry.
   
   Priority is as follows:
   
@@ -289,8 +291,7 @@ extension Actions {
 
   Consider the following class hierarchy:
 
-      NSObject -> Widget -> DetailWidget
-                    tap        detail
+      NSObject -> Widget (tap) -> DetailWidget (detail)
 
   The actions for an instance of DetailWidget are Widget's tap and DetailWidget's detail actions.
 

@@ -22,11 +22,11 @@ public class TableActions : NSObject {
   }
 
   public func tableView(tableView: UITableView, didSelectObject object: NSObject, atIndexPath indexPath: NSIndexPath) {
-    if !self.actions.isActionableObject(object) {
+    let actions = self.actions.actionsForObject(object)
+    if !actions.hasActions() {
       return
     }
 
-    let actions = self.actions.actionsForObject(object)
     if let shouldDeselect = actions.performTapAction(object, indexPath: indexPath) {
       if shouldDeselect {
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
@@ -34,6 +34,14 @@ public class TableActions : NSObject {
     }
 
     actions.performNavigateAction(object, indexPath: indexPath)
+  }
+
+  public func tableView(tableView: UITableView, accessoryButtonTappedForObject object: NSObject, withIndexPath indexPath: NSIndexPath) {
+    let actions = self.actions.actionsForObject(object)
+    if !actions.hasActions() {
+      return
+    }
+    actions.performDetailAction(object, indexPath: indexPath)
   }
 }
 
@@ -50,6 +58,12 @@ extension TableActions : UITableViewDelegate {
   public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
     if let object = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
       self.tableView(tableView, didSelectObject: object, atIndexPath: indexPath)
+    }
+  }
+
+  public func tableView(tableView: UITableView, accessoryButtonTappedForRowWithIndexPath indexPath: NSIndexPath) {
+    if let object = self.actionableObjectForTableView(tableView, atIndexPath: indexPath) {
+      self.tableView(tableView, accessoryButtonTappedForObject: object, withIndexPath: indexPath)
     }
   }
 }
