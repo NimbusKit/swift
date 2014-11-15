@@ -275,7 +275,7 @@ extension Actions {
   /**
   Returns all attached actions for a given object.
   
-  "Attached actions" is the union of
+  "Attached actions" are:
 
   1) actions attached to the provided object, and
   2) actions attached to classes in the object's class ancestry.
