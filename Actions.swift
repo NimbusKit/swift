@@ -117,26 +117,26 @@ struct ObjectActions {
     detailSelector?.performAction(object, indexPath: indexPath)
   }
 
-  mutating func mergeWith(otherActions: ObjectActions?) {
+  mutating func unionWith(otherActions: ObjectActions?) {
     if nil == otherActions {
       return
     }
-    if (otherActions!.tap != nil) {
+    if (tap == nil && otherActions!.tap != nil) {
       tap = otherActions!.tap
     }
-    if (otherActions!.navigate != nil) {
+    if (navigate == nil && otherActions!.navigate != nil) {
       navigate = otherActions!.navigate
     }
-    if (otherActions!.detail != nil) {
+    if (detail == nil && otherActions!.detail != nil) {
       detail = otherActions!.detail
     }
-    if (otherActions!.tapSelector != nil) {
+    if (tapSelector == nil && otherActions!.tapSelector != nil) {
       tapSelector = otherActions!.tapSelector
     }
-    if (otherActions!.navigateSelector != nil) {
+    if (navigateSelector == nil && otherActions!.navigateSelector != nil) {
       navigateSelector = otherActions!.navigateSelector
     }
-    if (otherActions!.detailSelector != nil) {
+    if (detailSelector == nil && otherActions!.detailSelector != nil) {
       detailSelector = otherActions!.detailSelector
     }
   }
@@ -272,24 +272,39 @@ extension Actions : ActionsInterface {
 
 // Private
 extension Actions {
+  /**
+  Returns all attached actions for a given object.
+  
+  "Attached actions" is defined here as the union of all 1) actions attached to the provided object
+  and 2) actions attached to classes in the object's class ancestry.
+  
+  Priority is as follows:
+  
+  1) Object actions
+  2) Object.class actions
+  3) Object.superclass.class actions
+  4) etc... up the class ancestry
+
+  ## Example
+
+  Consider the following class hierarchy:
+
+      NSObject -> Widget -> DetailWidget
+                    tap        detail
+
+  The actions for an instance of DetailWidget are Widget's tap and DetailWidget's detail actions.
+
+  Attaching a tap action to the DetailWidget instance would override the Widget tap action.
+  */
   func actionsForObject(object: O) -> ObjectActions {
-    let objectClass: AnyClass! = object.dynamicType
-    let objectClassName = NSStringFromClass(objectClass)
-
-    var ancestry: [AnyClass] = []
-    var classIterator: AnyClass! = objectClass
-    while classIterator != nil {
-      ancestry.append(classIterator)
-      classIterator = classIterator.superclass()
-    }
-
     var actions = ObjectActions()
+    actions.unionWith(self.objectToAction[object.hashValue])
 
-    for classIterator in ancestry.reverse() {
-      actions.mergeWith(self.classToAction[NSStringFromClass(classIterator)])
+    var objectClass: AnyClass! = object.dynamicType
+    while objectClass != nil {
+      actions.unionWith(self.classToAction[NSStringFromClass(objectClass)])
+      objectClass = objectClass.superclass()
     }
-
-    actions.mergeWith(self.objectToAction[object.hashValue])
 
     return actions
   }
