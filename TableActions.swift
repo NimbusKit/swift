@@ -15,15 +15,25 @@ public class TableActions : NSObject {
       return false
     }
 
-    cell.accessoryType = .DisclosureIndicator
-    cell.selectionStyle = .Default
+    cell.accessoryType = self.accessoryTypeForObject(object)
+    cell.selectionStyle = self.selectionStyleForObject(object)
+
     return true
   }
 
-  @objc(tableView:didSelectObject:atIndexPath:)
   public func tableView(tableView: UITableView, didSelectObject object: NSObject, atIndexPath indexPath: NSIndexPath) {
+    if !self.actions.isActionableObject(object) {
+      return
+    }
+
     let actions = self.actions.actionsForObject(object)
-    actions.tapSelector?.performAction()
+    if let shouldDeselect = actions.performTapAction(object, indexPath: indexPath) {
+      if shouldDeselect {
+        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+      }
+    }
+
+    actions.performNavigateAction(object, indexPath: indexPath)
   }
 }
 
@@ -65,13 +75,13 @@ extension TableActions : ActionsInterface {
   public func attachToObject(object: NSObject, detail: Action) -> NSObject {
     return self.actions.attachToObject(object, detail: detail)
   }
-  public func attachToObject<T: AnyObject>(object: NSObject, target: T, tap: (T) -> () -> Bool) -> NSObject {
+  public func attachToObject<T: AnyObject>(object: NSObject, target: T, tap: (T) -> BoolTargetSignature) -> NSObject {
     return self.actions.attachToObject(object, target: target, tap: tap)
   }
-  public func attachToObject<T: AnyObject>(object: NSObject, target: T, navigate: (T) -> () -> ()) -> NSObject {
+  public func attachToObject<T: AnyObject>(object: NSObject, target: T, navigate: (T) -> VoidTargetSignature) -> NSObject {
     return self.actions.attachToObject(object, target: target, navigate: navigate)
   }
-  public func attachToObject<T: AnyObject>(object: NSObject, target: T, detail: (T) -> () -> ()) -> NSObject {
+  public func attachToObject<T: AnyObject>(object: NSObject, target: T, detail: (T) -> VoidTargetSignature) -> NSObject {
     return self.actions.attachToObject(object, target: target, detail: detail)
   }
 
@@ -84,13 +94,13 @@ extension TableActions : ActionsInterface {
   public func attachToClass(theClass: AnyClass, detail: Action) -> AnyClass {
     return self.actions.attachToClass(theClass, detail: detail)
   }
-  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, tap: (T) -> () -> Bool) -> AnyClass {
+  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, tap: (T) -> BoolTargetSignature) -> AnyClass {
     return self.actions.attachToClass(theClass, target: target, tap: tap)
   }
-  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, navigate: (T) -> () -> ()) -> AnyClass {
+  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, navigate: (T) -> VoidTargetSignature) -> AnyClass {
     return self.actions.attachToClass(theClass, target: target, navigate: navigate)
   }
-  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, detail: (T) -> () -> ()) -> AnyClass {
+  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, detail: (T) -> VoidTargetSignature) -> AnyClass {
     return self.actions.attachToClass(theClass, target: target, detail: detail)
   }
 
@@ -104,6 +114,24 @@ extension TableActions : ActionsInterface {
 
 // Private
 extension TableActions {
+  func accessoryTypeForObject(object: NSObject) -> UITableViewCellAccessoryType {
+    let actions = self.actions.actionsForObject(object)
+    if actions.hasDetailAction() {
+      return .DetailDisclosureButton
+    } else if actions.hasNavigateAction() {
+      return .DisclosureIndicator
+    }
+    return .None
+  }
+
+  func selectionStyleForObject(object: NSObject) -> UITableViewCellSelectionStyle {
+    let actions = self.actions.actionsForObject(object)
+    if (actions.hasNavigateAction() || actions.hasTapAction()) {
+      return .Default
+    }
+    return .None
+  }
+
   func actionableObjectForTableView(tableView: UITableView, atIndexPath indexPath: NSIndexPath) -> NSObject? {
     if let model = tableView.dataSource as? TableModel {
       if let object = model.objectAtPath(indexPath) as? NSObject {
