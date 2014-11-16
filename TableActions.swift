@@ -7,11 +7,9 @@
 import Foundation
 import UIKit
 
-public class TableActions : NSObject {
-  var actions: Actions<NSObject> = Actions()
-
-  public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forObject object: NSObject, atIndexPath indexPath: NSIndexPath) -> Bool {
-    if !self.actions.isActionableObject(object) {
+extension Actions {
+  func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forObject object: NSObject, atIndexPath indexPath: NSIndexPath) -> Bool {
+    if !self.isActionableObject(object) {
       return false
     }
 
@@ -21,8 +19,8 @@ public class TableActions : NSObject {
     return true
   }
 
-  public func tableView(tableView: UITableView, didSelectObject object: NSObject, atIndexPath indexPath: NSIndexPath) {
-    let actions = self.actions.actionsForObject(object)
+  func tableView(tableView: UITableView, didSelectObject object: NSObject, atIndexPath indexPath: NSIndexPath) {
+    let actions = self.actionsForObject(object)
     if !actions.hasActions() {
       return
     }
@@ -36,8 +34,8 @@ public class TableActions : NSObject {
     actions.performNavigateAction(object, indexPath: indexPath)
   }
 
-  public func tableView(tableView: UITableView, accessoryButtonTappedForObject object: NSObject, withIndexPath indexPath: NSIndexPath) {
-    let actions = self.actions.actionsForObject(object)
+  func tableView(tableView: UITableView, accessoryButtonTappedForObject object: NSObject, withIndexPath indexPath: NSIndexPath) {
+    let actions = self.actionsForObject(object)
     if !actions.hasActions() {
       return
     }
@@ -45,7 +43,7 @@ public class TableActions : NSObject {
   }
 }
 
-extension TableActions : UITableViewDelegate {
+extension Actions : UITableViewDelegate {
   public func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
     cell.accessoryType = .None
     cell.selectionStyle = .None
@@ -68,68 +66,9 @@ extension TableActions : UITableViewDelegate {
   }
 }
 
-extension TableActions : ActionsInterface {
-  public func isActionableObject(object: NSObject) -> Bool {
-    return self.actions.isActionableObject(object)
-  }
-
-  public func setObject(object: NSObject, enabled: Bool) {
-    self.actions.setObject(object, enabled: enabled)
-  }
-  public func setClass(theClass: AnyClass, enabled: Bool) {
-    self.actions.setClass(theClass, enabled: enabled)
-  }
-
-  public func attachToObject(object: NSObject, tap: Action) -> NSObject {
-    return self.actions.attachToObject(object, tap: tap)
-  }
-  public func attachToObject(object: NSObject, navigate: Action) -> NSObject {
-    return self.actions.attachToObject(object, navigate: navigate)
-  }
-  public func attachToObject(object: NSObject, detail: Action) -> NSObject {
-    return self.actions.attachToObject(object, detail: detail)
-  }
-  public func attachToObject<T: AnyObject>(object: NSObject, target: T, tap: (T) -> BoolTargetSignature) -> NSObject {
-    return self.actions.attachToObject(object, target: target, tap: tap)
-  }
-  public func attachToObject<T: AnyObject>(object: NSObject, target: T, navigate: (T) -> VoidTargetSignature) -> NSObject {
-    return self.actions.attachToObject(object, target: target, navigate: navigate)
-  }
-  public func attachToObject<T: AnyObject>(object: NSObject, target: T, detail: (T) -> VoidTargetSignature) -> NSObject {
-    return self.actions.attachToObject(object, target: target, detail: detail)
-  }
-
-  public func attachToClass(theClass: AnyClass, tap: Action) -> AnyClass {
-    return self.actions.attachToClass(theClass, tap: tap)
-  }
-  public func attachToClass(theClass: AnyClass, navigate: Action) -> AnyClass {
-    return self.actions.attachToClass(theClass, navigate: navigate)
-  }
-  public func attachToClass(theClass: AnyClass, detail: Action) -> AnyClass {
-    return self.actions.attachToClass(theClass, detail: detail)
-  }
-  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, tap: (T) -> BoolTargetSignature) -> AnyClass {
-    return self.actions.attachToClass(theClass, target: target, tap: tap)
-  }
-  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, navigate: (T) -> VoidTargetSignature) -> AnyClass {
-    return self.actions.attachToClass(theClass, target: target, navigate: navigate)
-  }
-  public func attachToClass<T: AnyObject>(theClass: AnyClass, target: T, detail: (T) -> VoidTargetSignature) -> AnyClass {
-    return self.actions.attachToClass(theClass, target: target, detail: detail)
-  }
-
-  public func removeAllActionsForObject(object: NSObject) {
-    self.actions.removeAllActionsForObject(object)
-  }
-  public func removeAllActionsForClass(theClass: AnyClass) {
-    self.actions.removeAllActionsForClass(theClass)
-  }
-}
-
-// Private
-extension TableActions {
+extension Actions {
   func accessoryTypeForObject(object: NSObject) -> UITableViewCellAccessoryType {
-    let actions = self.actions.actionsForObject(object)
+    let actions = self.actionsForObject(object)
     if actions.hasDetailAction() {
       return .DetailDisclosureButton
     } else if actions.hasNavigateAction() {
@@ -139,7 +78,7 @@ extension TableActions {
   }
 
   func selectionStyleForObject(object: NSObject) -> UITableViewCellSelectionStyle {
-    let actions = self.actions.actionsForObject(object)
+    let actions = self.actionsForObject(object)
     if (actions.hasNavigateAction() || actions.hasTapAction()) {
       return .Default
     }
