@@ -66,6 +66,7 @@ extension Actions : UITableViewDelegate {
   }
 }
 
+// Private
 extension Actions {
   func accessoryTypeForObject(object: NSObject) -> UITableViewCellAccessoryType {
     let actions = self.actionsForObject(object)
