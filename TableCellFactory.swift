@@ -47,7 +47,7 @@ extension TableCellFactory {
   /**
   Returns a cell for a given object.
   */
-  func cell(tableCellClass: UITableViewCell.Type, tableView: UITableView, indexPath: NSIndexPath, object: TableCellObject?) -> UITableViewCell? {
+  private func cell(tableCellClass: UITableViewCell.Type, tableView: UITableView, indexPath: NSIndexPath, object: TableCellObject?) -> UITableViewCell? {
     if object == nil {
       return nil
     }
@@ -87,7 +87,7 @@ extension TableCellFactory {
 
 // Singleton Pattern
 extension TableCellFactory {
-  class var sharedInstance : TableCellFactory {
+  private class var sharedInstance : TableCellFactory {
     struct Singleton {
       static let instance = TableCellFactory()
     }

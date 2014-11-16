@@ -68,7 +68,7 @@ extension Actions : UITableViewDelegate {
 
 // Private
 extension Actions {
-  func accessoryTypeForObject(object: NSObject) -> UITableViewCellAccessoryType {
+  private func accessoryTypeForObject(object: NSObject) -> UITableViewCellAccessoryType {
     let actions = self.actionsForObject(object)
     if actions.hasDetailAction() {
       return .DetailDisclosureButton
@@ -78,7 +78,7 @@ extension Actions {
     return .None
   }
 
-  func selectionStyleForObject(object: NSObject) -> UITableViewCellSelectionStyle {
+  private func selectionStyleForObject(object: NSObject) -> UITableViewCellSelectionStyle {
     let actions = self.actionsForObject(object)
     if (actions.hasNavigateAction() || actions.hasTapAction()) {
       return .Default
@@ -86,7 +86,7 @@ extension Actions {
     return .None
   }
 
-  func actionableObjectForTableView(tableView: UITableView, atIndexPath indexPath: NSIndexPath) -> NSObject? {
+  private func actionableObjectForTableView(tableView: UITableView, atIndexPath indexPath: NSIndexPath) -> NSObject? {
     if let model = tableView.dataSource as? TableModel {
       if let object = model.objectAtPath(indexPath) as? NSObject {
         return object

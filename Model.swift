@@ -158,7 +158,7 @@ extension Model : MutableModelObjectInterface {
 
 // Private
 extension Model {
-  mutating func ensureMinimalState() {
+  private mutating func ensureMinimalState() {
     if self.sections.count == 0 {
       self.sections.append((nil, objects: []))
     }

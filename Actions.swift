@@ -14,7 +14,7 @@ protocol TargetAction {
   func performAction(object: NSObject, indexPath: NSIndexPath) -> Bool?
 }
 
-struct BoolObjectAction <T: AnyObject> : TargetAction {
+private struct BoolObjectAction <T: AnyObject> : TargetAction {
   weak var target: T?
   let action: (T) -> BoolTargetSignature
 
@@ -26,7 +26,7 @@ struct BoolObjectAction <T: AnyObject> : TargetAction {
   }
 }
 
-struct VoidObjectAction <T: AnyObject> : TargetAction {
+private struct VoidObjectAction <T: AnyObject> : TargetAction {
   weak var target: T?
   let action: (T) -> VoidTargetSignature
 
@@ -244,7 +244,7 @@ extension Actions {
   }
 }
 
-// Private
+// Internal
 extension Actions {
   /**
   Returns all attached actions for a given object.
@@ -283,14 +283,17 @@ extension Actions {
 
     return actions
   }
+}
 
-  func ensureActionsExistForObject<O where O: AnyObject, O: Hashable>(object: O) {
+// Private
+extension Actions {
+  private func ensureActionsExistForObject<O where O: AnyObject, O: Hashable>(object: O) {
     if self.objectToAction[object.hashValue] == nil {
       self.objectToAction[object.hashValue] = ObjectActions()
     }
   }
 
-  func ensureActionsExistForClass(theClass: String) {
+  private func ensureActionsExistForClass(theClass: String) {
     if self.classToAction[theClass] == nil {
       self.classToAction[theClass] = ObjectActions()
     }
